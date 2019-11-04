@@ -1,4 +1,7 @@
 # ESPAsyncWebServer 
+
+This is my branch that renames the web methods GET, PUT, STAT etc.. to ESPA_GET... This avoid naming collisions with other libs (wifimanager specifically).  
+
 [![Build Status](https://travis-ci.org/me-no-dev/ESPAsyncWebServer.svg?branch=master)](https://travis-ci.org/me-no-dev/ESPAsyncWebServer) ![](https://github.com/me-no-dev/ESPAsyncWebServer/workflows/ESP%20Async%20Web%20Server%20CI/badge.svg) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/395dd42cfc674e6ca2e326af3af80ffc)](https://www.codacy.com/manual/me-no-dev/ESPAsyncWebServer?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=me-no-dev/ESPAsyncWebServer&amp;utm_campaign=Badge_Grade)
 
 For help and support [![Join the chat at https://gitter.im/me-no-dev/ESPAsyncWebServer](https://badges.gitter.im/me-no-dev/ESPAsyncWebServer.svg)](https://gitter.im/me-no-dev/ESPAsyncWebServer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -220,7 +223,7 @@ lib_deps = https://github.com/me-no-dev/ESPAsyncWebServer.git
 ### Common Variables
 ```cpp
 request->version();       // uint8_t: 0 = HTTP/1.0, 1 = HTTP/1.1
-request->method();        // enum:    HTTP_GET, HTTP_POST, HTTP_DELETE, HTTP_PUT, HTTP_PATCH, HTTP_HEAD, HTTP_OPTIONS
+request->method();        // enum:    ESPA_HTTP_GET, ESPA_HTTP_POST, ESPA_HTTP_DELETE, ESPA_HTTP_PUT, ESPA_HTTP_PATCH, ESPA_HTTP_HEAD, ESPA_HTTP_OPTIONS
 request->url();           // String:  URL of the request (not including host, port or GET parameters)
 request->host();          // String:  The requested host (can be used for virtual hosting)
 request->contentType();   // String:  ContentType of the request (not avaiable in Handler::canHandle)
@@ -1201,7 +1204,7 @@ if (!!window.EventSource) {
 ```cpp
 //First request will return 0 results unless you start scan from somewhere else (loop/setup)
 //Do not request more often than 3-5 seconds
-server.on("/scan", HTTP_GET, [](AsyncWebServerRequest *request){
+server.on("/scan", ESPA_HTTP_GET, [](AsyncWebServerRequest *request){
   String json = "[";
   int n = WiFi.scanComplete();
   if(n == -2){
@@ -1306,32 +1309,32 @@ void setup(){
   server.addHandler(&events);
 
   // respond to GET requests on URL /heap
-  server.on("/heap", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/heap", ESPA_HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "text/plain", String(ESP.getFreeHeap()));
   });
 
   // upload a file to /upload
-  server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request){
+  server.on("/upload", ESPA_HTTP_POST, [](AsyncWebServerRequest *request){
     request->send(200);
   }, onUpload);
 
   // send a file when /index is requested
-  server.on("/index", HTTP_ANY, [](AsyncWebServerRequest *request){
+  server.on("/index", ESPA_HTTP_ANY, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/index.htm");
   });
 
   // HTTP basic authentication
-  server.on("/login", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/login", ESPA_HTTP_GET, [](AsyncWebServerRequest *request){
     if(!request->authenticate(http_username, http_password))
         return request->requestAuthentication();
     request->send(200, "text/plain", "Login Success!");
   });
 
   // Simple Firmware Update Form
-  server.on("/update", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/update", ESPA_HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "text/html", "<form method='POST' action='/update' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form>");
   });
-  server.on("/update", HTTP_POST, [](AsyncWebServerRequest *request){
+  server.on("/update", ESPA_HTTP_POST, [](AsyncWebServerRequest *request){
     shouldReboot = !Update.hasError();
     AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", shouldReboot?"OK":"FAIL");
     response->addHeader("Connection", "close");
@@ -1403,10 +1406,10 @@ public :
 
   void begin(){
     // attach global request handler
-    classWebServer.on("/example", HTTP_ANY, handleRequest);
+    classWebServer.on("/example", ESPA_HTTP_ANY, handleRequest);
 
     // attach class request handler
-    classWebServer.on("/example", HTTP_ANY, std::bind(&WebClass::classRequest, this, std::placeholders::_1));
+    classWebServer.on("/example", ESPA_HTTP_ANY, std::bind(&WebClass::classRequest, this, std::placeholders::_1));
   }
 };
 
@@ -1415,10 +1418,10 @@ WebClass webClassInstance;
 
 void setup() {
   // attach global request handler
-  globalWebServer.on("/example", HTTP_ANY, handleRequest);
+  globalWebServer.on("/example", ESPA_HTTP_ANY, handleRequest);
 
   // attach class request handler
-  globalWebServer.on("/example", HTTP_ANY, std::bind(&WebClass::classRequest, webClassInstance, std::placeholders::_1));
+  globalWebServer.on("/example", ESPA_HTTP_ANY, std::bind(&WebClass::classRequest, webClassInstance, std::placeholders::_1));
 }
 
 void loop() {
@@ -1478,7 +1481,7 @@ This is one option:
 
 ```cpp
 webServer.onNotFound([](AsyncWebServerRequest *request) {
-  if (request->method() == HTTP_OPTIONS) {
+  if (request->method() == ESPA_HTTP_OPTIONS) {
     request->send(200);
   } else {
     request->send(404);
@@ -1492,7 +1495,7 @@ With path variable you can create a custom regex rule for a specific parameter i
 For example we want a `sensorId` parameter in a route rule to match only a integer.
 
 ```cpp
-  server.on("^\\/sensor\\/([0-9]+)$", HTTP_GET, [] (AsyncWebServerRequest *request) {
+  server.on("^\\/sensor\\/([0-9]+)$", ESPA_HTTP_GET, [] (AsyncWebServerRequest *request) {
       String sensorId = request->pathArg(0);
   });
 ```
